@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+
 import com.example.gcash.model.*;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
@@ -18,13 +20,26 @@ public class ChatController {
     private RestTemplate restTemplate;
     
     @Value("${openai.model}")
-    private String model;
+    private String openai_model;
     
-    @Value("${openai.api.url}")
+    @Value("${azure.model}")
+    private String azure_model;
+
+    @Value("${aiproxy.api.url}")
     private String apiUrl;
     
     @GetMapping("/chat")
-    public String chat(@RequestParam String prompt) {
+    public String chat(@RequestParam String prompt, @RequestHeader String llm) {
+
+        // verify the model to proxy to
+        String model = null;
+
+        if (llm.equals("azure")){
+            model = azure_model;
+        } else if (llm.equals("openai")){
+            model = openai_model;
+        }
+
         // create a request
         ChatRequest request = new ChatRequest(model, prompt);
         
